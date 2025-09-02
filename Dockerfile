@@ -35,18 +35,3 @@ RUN php artisan config:cache && \
 CMD ["php-fpm"]
 
 EXPOSE 9000
-```
-eof
-
----
-
-### Siguientes pasos
-
-1.  **Copia y pega** el contenido del archivo de arriba en un nuevo archivo de texto simple.
-2.  **Guárdalo** en la carpeta principal de tu proyecto de Laravel (donde está `artisan`) y asegúrate de que el nombre exacto del archivo sea **`Dockerfile`** (sin ninguna extensión como `.txt`).
-3.  **Vuelve a tu terminal** y ejecuta los siguientes comandos para agregar el nuevo archivo a tu repositorio y subirlo a GitHub:
-    ```bash
-    git add Dockerfile
-    git commit -m "Agrega Dockerfile para despliegue en Render"
-    git push -u origin master
-    
