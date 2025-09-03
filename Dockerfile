@@ -10,6 +10,7 @@ RUN apk add --no-cache \
     jpeg-dev \
     oniguruma-dev \
     libxml2-dev \
+    postgresql-dev \
     && docker-php-ext-install pdo_pgsql zip exif mbstring gd
 
 # Instala Composer globalmente.
