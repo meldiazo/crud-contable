@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-# Iniciar PHP-FPM en segundo plano
+# Iniciar PHP-FPM en segundo plano para que el script pueda continuar
 php-fpm -D
 
 # Esperar a que el socket de PHP-FPM esté disponible
@@ -12,19 +12,11 @@ if [ ! -S /var/run/php-fpm.sock ]; then
     done
 fi
 
-# Corregir permisos del socket para que Nginx pueda acceder
-# Esta sección es crucial para evitar errores.
-# El 'chown' podría fallar si el usuario 'www-data' no existe o los permisos son incorrectos.
-# Por eso, usaremos el usuario y grupo del socket que php-fpm creó, y
-# luego corregiremos los permisos para que Nginx pueda leer/escribir.
-SOCKET_OWNER=$(stat -c '%U' /var/run/php-fpm.sock)
-SOCKET_GROUP=$(stat -c '%G' /var/run/php-fpm.sock)
-
-# Si el propietario o grupo no es el esperado, intentamos cambiarlo.
-if [ "$SOCKET_OWNER" != "www-data" ] || [ "$SOCKET_GROUP" != "www-data" ]; then
-    chown www-data:www-data /var/run/php-fpm.sock || true
-fi
+# Corregir los permisos del socket para que Nginx pueda acceder a él.
+# El error 502 Bad Gateway a menudo se debe a que Nginx no puede leer este socket.
+chown www-data:www-data /var/run/php-fpm.sock
 chmod 660 /var/run/php-fpm.sock
 
-# Iniciar Nginx en primer plano, lo que mantendrá el contenedor en ejecución
+# Iniciar Nginx en primer plano. Esta línea es lo que hace que el contenedor
+# siga en ejecución, ya que Nginx se convertirá en el proceso principal.
 exec nginx -g "daemon off;"
