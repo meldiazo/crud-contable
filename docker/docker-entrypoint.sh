@@ -1,22 +1,29 @@
 #!/bin/sh
 set -e
 
-# Iniciar PHP-FPM en segundo plano para que el script pueda continuar
+echo "Iniciando PHP-FPM..."
 php-fpm -D
 
-# Esperar a que el socket de PHP-FPM esté disponible
-if [ ! -S /var/run/php-fpm.sock ]; then
-    echo "Esperando a que el socket de php-fpm esté disponible..."
-    while [ ! -S /var/run/php-fpm.sock ]; do
-        sleep 0.1
-    done
-fi
+echo "Esperando a que el socket de PHP-FPM esté disponible en /var/run/php-fpm.sock..."
+SOCKET_PATH="/var/run/php-fpm.sock"
+START_TIME=$(date +%s)
+TIMEOUT=60
+while [ ! -S "$SOCKET_PATH" ]; do
+    CURRENT_TIME=$(date +%s)
+    ELAPSED=$((CURRENT_TIME - START_TIME))
+    if [ "$ELAPSED" -ge "$TIMEOUT" ]; then
+        echo "Error: Tiempo de espera agotado. El socket de PHP-FPM no apareció."
+        exit 1
+    fi
+    sleep 0.5
+done
+echo "Socket de PHP-FPM encontrado. Corrigiendo permisos."
 
-# Corregir los permisos del socket para que Nginx pueda acceder a él.
-# El error 502 Bad Gateway a menudo se debe a que Nginx no puede leer este socket.
-chown www-data:www-data /var/run/php-fpm.sock
-chmod 660 /var/run/php-fpm.sock
+# Asegurarse de que el usuario de Nginx ('www-data') pueda acceder al socket.
+chown www-data:www-data "$SOCKET_PATH" || echo "Advertencia: No se pudo cambiar el propietario del socket. El script continuará, pero verifique los usuarios en el contenedor."
+chmod 660 "$SOCKET_PATH" || { echo "Error: No se pudo cambiar los permisos del socket."; exit 1; }
 
-# Iniciar Nginx en primer plano. Esta línea es lo que hace que el contenedor
-# siga en ejecución, ya que Nginx se convertirá en el proceso principal.
+echo "Permisos del socket corregidos. Iniciando Nginx."
+
+# Iniciar Nginx en primer plano, lo que mantendrá el contenedor en ejecución
 exec nginx -g "daemon off;"
