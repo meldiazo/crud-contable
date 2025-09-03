@@ -1,10 +1,13 @@
-# Usa una imagen base de PHP-FPM, que es ideal para entornos de producción.
+# Primera etapa: Composer
+FROM composer:2.4 as composer
+
+# Segunda etapa: Build de la aplicación
 FROM php:8.2-fpm-alpine
 
-# Instala dependencias del sistema operativo que Laravel necesita.
+# Instala dependencias del sistema operativo
 RUN apk add --no-cache \
+    nginx \
     git \
-    curl \
     libzip-dev \
     libpng-dev \
     jpeg-dev \
@@ -13,26 +16,29 @@ RUN apk add --no-cache \
     postgresql-dev \
     && docker-php-ext-install pdo_pgsql zip exif mbstring gd
 
-# Instala Composer globalmente.
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+# Instala Composer
+COPY --from=composer /usr/bin/composer /usr/bin/composer
 
-# Define el directorio de trabajo dentro del contenedor.
-WORKDIR /app
+# Define el directorio de trabajo
+WORKDIR /var/www
 
-# Copia los archivos de tu proyecto al contenedor.
+# Copia los archivos del proyecto
 COPY . .
 
-# Instala las dependencias del proyecto.
-# El comando `--no-dev` evita que se instalen las dependencias de desarrollo, lo que reduce el tamaño de la imagen.
-RUN composer install --no-dev --optimize-autoloader
+# Instala las dependencias del proyecto
+RUN composer install --optimize-autoloader --no-dev
 
-# Ejecuta los comandos de optimización de Laravel.
+# Ejecuta los comandos de optimización
 RUN php artisan config:cache && \
     php artisan route:cache && \
     php artisan view:cache
 
-# El comando a ejecutar para iniciar la aplicación.
-# Este inicia PHP-FPM, que es el servicio que ejecutará tu aplicación.
-CMD ["php-fpm"]
+# Configura Nginx
+COPY docker/nginx.conf /etc/nginx/http.d/default.conf
+COPY docker/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-EXPOSE 9000
+EXPOSE 80
+
+# Inicia Nginx y PHP-FPM
+CMD ["nginx", "-g", "daemon off;"]
