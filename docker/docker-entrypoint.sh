@@ -1,9 +1,20 @@
 #!/bin/sh
+set -e
 
-# Inicia PHP-FPM en el background
+# Iniciar PHP-FPM en segundo plano
 php-fpm -D
 
-# Inicia Nginx en el foreground.
-# El comando 'exec' asegura que Nginx se convierta en el proceso principal del contenedor,
-# lo que evita que el contenedor se cierre.
-exec nginx -g 'daemon off;'
+# Esperar a que el socket de PHP-FPM esté disponible
+if [ ! -S /var/run/php-fpm.sock ]; then
+    echo "Esperando a que el socket de php-fpm esté disponible..."
+    while [ ! -S /var/run/php-fpm.sock ]; do
+        sleep 0.1
+    done
+fi
+
+# Corregir permisos del socket para que Nginx pueda acceder
+chown www-data:www-data /var/run/php-fpm.sock
+chmod 660 /var/run/php-fpm.sock
+
+# Iniciar Nginx en primer plano, lo que mantendrá el contenedor en ejecución
+exec nginx -g "daemon off;"
