@@ -41,4 +41,5 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 EXPOSE 80
 
 # Inicia Nginx y PHP-FPM
-CMD ["nginx", "-g", "daemon off;"]
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+CMD ["-g", "daemon off;"]
