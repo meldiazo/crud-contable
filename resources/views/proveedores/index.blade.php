@@ -18,6 +18,9 @@
 </head>
 <body class="flex items-center justify-center min-h-screen">
     <div class="container mx-auto px-4 py-8 max-w-4xl bg-white shadow-xl rounded-2xl">
+        <div class="mb-4 flex justify-end">
+            <a href="{{ url('/') }}" class="px-4 py-2 rounded-md bg-gray-200 hover:bg-gray-300 text-gray-800">Home</a>
+        </div>
         <div class="mb-6 text-center">
             <h1 class="text-3xl font-bold text-gray-800">Gestión de Proveedores</h1>
             <p class="text-gray-500 mt-2">
