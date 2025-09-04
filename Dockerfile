@@ -1,44 +1,31 @@
-# Primera etapa: Composer
-FROM composer:2.4 as composer
-
-# Segunda etapa: Build de la aplicación
 FROM php:8.2-fpm-alpine
 
-# Instala dependencias del sistema operativo
+# Install PHP extensions
 RUN apk add --no-cache \
-    nginx \
     git \
-    libzip-dev \
-    libpng-dev \
-    jpeg-dev \
-    oniguruma-dev \
-    libxml2-dev \
+    curl \
+    zip \
+    unzip \
     postgresql-dev \
-    && docker-php-ext-install pdo_pgsql zip exif mbstring gd
+    && docker-php-ext-install pdo_pgsql \
+    && docker-php-ext-install mysqli \
+    && docker-php-ext-enable pdo_pgsql
 
-# Instala Composer
-COPY --from=composer /usr/bin/composer /usr/bin/composer
-
-# Define el directorio de trabajo
+# Set working directory
 WORKDIR /var/www
 
-# Copia los archivos del proyecto
-COPY . .
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
 
-# Instala las dependencias del proyecto
-RUN composer install --optimize-autoloader --no-dev
-
-# Ejecuta los comandos de optimización
-RUN php artisan config:cache && \
-    php artisan route:cache && \
-    php artisan view:cache
-
-# Configura Nginx
-COPY docker/nginx.conf /etc/nginx/http.d/default.conf
+# Copy entrypoint script
 COPY docker/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-EXPOSE 80
+# Copy custom php ini file
+COPY docker/00-config.ini /usr/local/etc/php/conf.d/
 
-# Inicia el script de entrada
-CMD ["/usr/local/bin/docker-entrypoint.sh"]
+# Expose port
+EXPOSE 9000
+
+# Run the entrypoint script
+ENTRYPOINT ["docker-entrypoint.sh"]

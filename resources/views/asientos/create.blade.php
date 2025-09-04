@@ -3,75 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crear Nuevo Asiento</title>
+    <title>Crear Asiento Contable</title>
+    <!-- Usamos Tailwind CSS para la coherencia del diseño -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px; }
-        .container { max-width: 600px; margin: auto; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: #333; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; color: #555; font-weight: bold; }
-        input[type="text"], input[type="date"], input[type="number"], textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box; /* Ensures padding doesn't affect the final width */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
         }
-        .btn { padding: 10px 15px; border: none; cursor: pointer; text-decoration: none; border-radius: 4px; color: white; display: inline-block; }
-        .btn-primary { background-color: #007bff; }
-        .btn-secondary { background-color: #6c757d; }
-        .btn-container { display: flex; justify-content: space-between; margin-top: 20px; }
-        .alert-danger { background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px; margin-bottom: 20px; }
-        .alert-danger ul { margin: 0; padding-left: 20px; }
     </style>
 </head>
-<body>
+<body class="flex items-center justify-center min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-2xl bg-white shadow-xl rounded-2xl">
+        <div class="mb-6 text-center">
+            <h1 class="text-3xl font-bold text-gray-800">Crear Nuevo Asiento Contable</h1>
+            <p class="text-gray-500 mt-2">
+                Completa el formulario para registrar una nueva transacción financiera.
+            </p>
+        </div>
 
-<div class="container">
-    <h2>Crear Nuevo Asiento Contable</h2>
+        <!-- Mensajes de error de validación -->
+        @if ($errors->any())
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                <span class="block sm:inline">Por favor, corrige los siguientes errores:</span>
+                <ul class="mt-2 list-disc list-inside">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
 
-    @if ($errors->any())
-        <div class="alert-danger">
-            <ul>
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
+        <!-- Formulario para crear un asiento -->
+        <div class="bg-gray-100 p-6 rounded-xl shadow-inner mb-8">
+            <form action="{{ route('asientos.store') }}" method="POST">
+                @csrf
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="fecha" class="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
+                        <input type="date" id="fecha" name="fecha" value="{{ old('fecha') }}" class="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <div>
+                        <label for="descripcion" class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+                        <textarea id="descripcion" name="descripcion" rows="3" class="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required>{{ old('descripcion') }}</textarea>
+                    </div>
+                    <div>
+                        <label for="monto_debe" class="block text-sm font-medium text-gray-700 mb-1">Monto (Debe)</label>
+                        <input type="number" step="0.01" id="monto_debe" name="monto_debe" value="{{ old('monto_debe') }}" class="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <div>
+                        <label for="monto_haber" class="block text-sm font-medium text-gray-700 mb-1">Monto (Haber)</label>
+                        <input type="number" step="0.01" id="monto_haber" name="monto_haber" value="{{ old('monto_haber') }}" class="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <div>
+                        <label for="cuenta_debe" class="block text-sm font-medium text-gray-700 mb-1">Cuenta (Debe)</label>
+                        <input type="text" id="cuenta_debe" name="cuenta_debe" value="{{ old('cuenta_debe') }}" class="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <div>
+                        <label for="cuenta_haber" class="block text-sm font-medium text-gray-700 mb-1">Cuenta (Haber)</label>
+                        <input type="text" id="cuenta_haber" name="cuenta_haber" value="{{ old('cuenta_haber') }}" class="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                </div>
+                <div class="mt-6 flex justify-end space-x-2">
+                    <a href="{{ route('asientos.index') }}" class="bg-gray-400 hover:bg-gray-500 text-white font-semibold py-2 px-6 rounded-lg shadow-md transition-colors">Cancelar</a>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg shadow-md transition-colors">Guardar Asiento</button>
+                </div>
+            </form>
         </div>
-    @endif
-
-    <form action="{{ route('asientos.store') }}" method="POST">
-        @csrf
-        <div class="form-group">
-            <label for="fecha">Fecha</label>
-            <input type="date" id="fecha" name="fecha" value="{{ old('fecha') }}" required>
-        </div>
-        <div class="form-group">
-            <label for="descripcion">Descripción</label>
-            <textarea id="descripcion" name="descripcion" rows="3" required>{{ old('descripcion') }}</textarea>
-        </div>
-        <div class="form-group">
-            <label for="monto_debe">Monto (Debe)</label>
-            <input type="number" step="0.01" id="monto_debe" name="monto_debe" value="{{ old('monto_debe') }}" required>
-        </div>
-        <div class="form-group">
-            <label for="monto_haber">Monto (Haber)</label>
-            <input type="number" step="0.01" id="monto_haber" name="monto_haber" value="{{ old('monto_haber') }}" required>
-        </div>
-        <div class="form-group">
-            <label for="cuenta_debe">Cuenta (Debe)</label>
-            <input type="text" id="cuenta_debe" name="cuenta_debe" value="{{ old('cuenta_debe') }}" required>
-        </div>
-        <div class="form-group">
-            <label for="cuenta_haber">Cuenta (Haber)</label>
-            <input type="text" id="cuenta_haber" name="cuenta_haber" value="{{ old('cuenta_haber') }}" required>
-        </div>
-        <div class="btn-container">
-            <a href="{{ route('asientos.index') }}" class="btn btn-secondary">Cancelar</a>
-            <button type="submit" class="btn btn-primary">Guardar Asiento</button>
-        </div>
-    </form>
-</div>
-
+    </div>
 </body>
 </html>
